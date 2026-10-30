@@ -1,0 +1,102 @@
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  net.minecraft.network.FriendlyByteBuf
+ *  net.minecraftforge.api.distmarker.Dist
+ *  net.minecraftforge.fml.DistExecutor
+ *  net.minecraftforge.network.NetworkEvent$Context
+ *  nonamecrackers2.crackerslib.common.packet.Packet
+ */
+package nonamecrackers2.witherstormmod.common.packet;
+
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
+import nonamecrackers2.crackerslib.common.packet.Packet;
+import nonamecrackers2.witherstormmod.client.packet.WitherStormModMessageHandlerClient;
+import nonamecrackers2.witherstormmod.common.entity.ai.witherstorm.PlayDeadManager;
+
+public class UpdatePlayDeadManagerMessage
+extends Packet {
+    private int entityId;
+    private PlayDeadManager.State state = PlayDeadManager.State.NORMAL_BEHAVIOR;
+    private int ticks;
+    private int revivalTicks;
+    private boolean hasRecentlyBeenRevived;
+    private boolean updateTick;
+    private int revivalPlayerProtection;
+
+    public UpdatePlayDeadManagerMessage(int id, PlayDeadManager manager, boolean updateTick) {
+        super(true);
+        this.entityId = id;
+        this.state = manager.getState();
+        this.ticks = manager.getTicks();
+        this.revivalTicks = manager.getTicksSinceRevival();
+        this.hasRecentlyBeenRevived = manager.hasRecentlyBeenRevived();
+        this.updateTick = updateTick;
+        this.revivalPlayerProtection = manager.getRevivalPlayerProtectionTime();
+    }
+
+    public UpdatePlayDeadManagerMessage() {
+        super(false);
+    }
+
+    public int getEntityID() {
+        return this.entityId;
+    }
+
+    public PlayDeadManager.State getState() {
+        return this.state;
+    }
+
+    public int getTicks() {
+        return this.ticks;
+    }
+
+    public int getTicksSinceRevival() {
+        return this.revivalTicks;
+    }
+
+    public boolean hasRecentlyBeenRevived() {
+        return this.hasRecentlyBeenRevived;
+    }
+
+    public boolean shouldUpdateTick() {
+        return this.updateTick;
+    }
+
+    public int getRevivalPlayerProtectionTime() {
+        return this.revivalPlayerProtection;
+    }
+
+    public void decode(FriendlyByteBuf buffer) {
+        this.entityId = buffer.m_130242_();
+        this.state = (PlayDeadManager.State)buffer.m_130066_(PlayDeadManager.State.class);
+        this.ticks = buffer.readInt();
+        this.revivalTicks = buffer.readInt();
+        this.hasRecentlyBeenRevived = buffer.readBoolean();
+        this.updateTick = buffer.readBoolean();
+        this.revivalPlayerProtection = buffer.readInt();
+    }
+
+    public void encode(FriendlyByteBuf buffer) {
+        buffer.m_130130_(this.entityId);
+        buffer.m_130068_((Enum)this.state);
+        buffer.writeInt(this.ticks);
+        buffer.writeInt(this.revivalTicks);
+        buffer.writeBoolean(this.hasRecentlyBeenRevived);
+        buffer.writeBoolean(this.updateTick);
+        buffer.writeInt(this.revivalPlayerProtection);
+    }
+
+    public Runnable getProcessor(NetworkEvent.Context context) {
+        return () -> DistExecutor.unsafeRunWhenOn((Dist)Dist.CLIENT, () -> () -> WitherStormModMessageHandlerClient.processUpdatePlayDeadManagerMessage(this));
+    }
+
+    public String toString() {
+        return "UpdatePlayDeadManagerMessage[id=" + this.entityId + ", state=" + this.state.toString() + ", ticks=" + this.ticks + ", updateTick=" + this.updateTick + "]";
+    }
+}
+
